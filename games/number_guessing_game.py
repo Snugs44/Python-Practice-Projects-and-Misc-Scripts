@@ -1,85 +1,52 @@
+"""Guess a random integer within a user-selected range from 0 to 100."""
+
 import random
 
-welc_message = input("Welcome to the number guessing game! Would you like to play? ")
+
+def read_int(prompt: str, minimum: int, maximum: int) -> int:
+    """Prompt until an integer within the inclusive bounds is supplied."""
+    if minimum > maximum:
+        raise ValueError("Minimum cannot exceed maximum.")
+    while True:
+        try:
+            value = int(input(prompt))
+        except ValueError:
+            print("Please enter a whole number.")
+            continue
+        if minimum <= value <= maximum:
+            return value
+        print(f"Please enter a number from {minimum} to {maximum}.")
 
 
-if welc_message.lower() == "yes":
-    print("Alright, let's get started!")
-    
-elif welc_message.lower() != "yes":
-    print("Okay, no problem! ")
-    quit()
-    
+def choose_number(minimum: int, maximum: int) -> int:
+    """Choose a target, rejecting inverted or unsupported ranges."""
+    if type(minimum) is not int or type(maximum) is not int:
+        raise ValueError("Bounds must be whole numbers.")
+    if not 0 <= minimum <= maximum <= 100:
+        raise ValueError("Bounds must satisfy 0 <= minimum <= maximum <= 100.")
+    return random.randint(minimum, maximum)
 
 
-max_num_range = input("Enter the maximum number you want to guess: ")
-
-if max_num_range.isdigit():
-        max_num_range = int(max_num_range)
-        
-        if max_num_range >= 101:
-            print("The maximum number cannot be greater than 100!")
-            quit()
-    
-else:
-     print("Please enter an integer! ")
-     quit()
-            
-    
-    
-min_num_range = input("Enter the minimum number you want to guess: ")
-
-if min_num_range.isdigit():
-            min_num_range = int(min_num_range)
-            
-            if min_num_range < 0:
-                print("The minimum number cannot be negative")
-                quit()
-else:
-    print("Please enter an integer! ")
-    quit()
-            
-            
-rand_num = random.randint(min_num_range, max_num_range)
+def main() -> None:
+    answer = input("Welcome! Would you like to play? (yes/no): ").strip().lower()
+    if answer not in {"yes", "y"}:
+        print("Okay, goodbye!")
+        return
+    maximum = read_int("Maximum number (0-100): ", 0, 100)
+    minimum = read_int(f"Minimum number (0-{maximum}): ", 0, maximum)
+    target = choose_number(minimum, maximum)
+    attempts = 0
+    while True:
+        guess = read_int(f"Your guess ({minimum}-{maximum}): ", minimum, maximum)
+        attempts += 1
+        if guess == target:
+            print(f"You nailed it in {attempts} guess(es)!")
+            return
+        print("Try guessing higher!" if guess < target else "Try guessing lower!")
 
 
-while True:
-    instruc = input("Please enter a number for your guess! ")
-    
-    if instruc.isdigit():
-        instruc = int(instruc)
-        
-    else:
-        print("Please enter an integer!")
-        continue
-    
-    if instruc == rand_num:
-        print("You nailed it!")
-        break
-    
-    
-    elif instruc <= rand_num:
-        print("Try guessing higher!")
-            
-    elif instruc >= rand_num:
-        print("Close, try going lower!")
-        
-
-
-
-
-
-
-
-        
-
-
-    
-
-
-
-
-
-
-
- 
+if __name__ == "__main__":
+    try:
+        main()
+    except (EOFError, KeyboardInterrupt):
+        print("\nGoodbye!")

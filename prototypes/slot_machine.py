@@ -1,100 +1,76 @@
+"""A virtual-credit input and symbol-grid prototype, not a complete game.
+
+There is no payout calculation or balance-update loop. No money is involved.
+"""
+
 import random
 
 MAX_LINES = 3
 MAX_BET = 100
 MIN_BET = 1
-
 ROWS = 3
 COLS = 3
-
-symbol_count = {
-    "A": 2,
-    "B": 4,
-    "C": 6,
-    "D": 8
-}
+SYMBOL_COUNTS = {"A": 2, "B": 4, "C": 6, "D": 8}
 
 
-def get_slot_machine_spin(rows, cols, symbols):
-    all_symbols = []
-    for symbol, symbol_count in symbols.items():
-        for _ in range(symbol_count):
-            all_symbols.append(symbol)
+def get_slot_machine_spin(rows: int, cols: int, symbols: dict[str, int]) -> list[list[str]]:
+    """Return columns sampled without replacement within each column.
 
-    columns = [[], [], []]
-    for _ in range(cols):
-        column = []
-        current_symbols = all_symbols[:]
-        for _ in range(rows):
-            value = random.choice(all_symbols)
-            current_symbols.remove(value)
-            column.append(value)
-
-        columns.append(column)
-
-    # Text based slot-machine
-    # Start with collecting user input: Deposit/Bet
+    Counts represent separate copies of a symbol; the pool resets per column.
+    """
+    if type(rows) is not int or type(cols) is not int or rows < 1 or cols < 1:
+        raise ValueError("Rows and columns must be positive integers.")
+    if not symbols or any(type(count) is not int or count < 1 for count in symbols.values()):
+        raise ValueError("Symbol counts must be positive integers.")
+    pool = [symbol for symbol, count in symbols.items() for _ in range(count)]
+    if rows > len(pool):
+        raise ValueError("There are not enough symbol copies for one column.")
+    return [random.sample(pool, rows) for _ in range(cols)]
 
 
-def deposit():
+def read_amount(prompt: str, minimum: int, maximum: int | None = None) -> int:
+    """Prompt for an integer amount within the supplied inclusive bounds."""
+    if maximum is not None and minimum > maximum:
+        raise ValueError("Minimum cannot exceed maximum.")
     while True:
-        amount = input("How much will you deposit? $")
-        if amount.isdigit():
-            amount = int(amount)
-            if amount > 0:
-                break
-            else:
-                print("Amount must be greater than 0.")
-        else:
-            print("Please Enter a Number: ")
-
-    return amount
+        try:
+            amount = int(input(prompt))
+        except ValueError:
+            print("Please enter a whole number.")
+            continue
+        if amount >= minimum and (maximum is None or amount <= maximum):
+            return amount
+        limit = f"{minimum}-{maximum}" if maximum is not None else f"at least {minimum}"
+        print(f"Enter {limit} credits/lines.")
 
 
-def get_number_of_lines():
-    while True:
-        lines = input("Enter number of lines to bet on (1-" + str(MAX_LINES) + ")? ")
-        if lines.isdigit():
-            lines = int(lines)
-            if 1 <= lines <= MAX_LINES:
-                break
-            else:
-                print("Enter a valid number of lines.")
-        else:
-            print("Please Enter a Number: ")
-
-    return lines
+def deposit() -> int:
+    return read_amount("Starting virtual credits: ", 1)
 
 
-def get_bet():
-    while True:
-        amount = input("How much will you bet for each line? ")
-        if amount.isdigit():
-            amount = int(amount)
-            if MIN_BET <= amount <= MAX_BET:
-                break
-            else:
-                print(f"Amount must be {MIN_BET} - {MAX_BET}.")
-        else:
-            print("Please Enter a Number: ")
-
-    return amount
+def get_number_of_lines(maximum: int = MAX_LINES) -> int:
+    return read_amount(f"Lines to select (1-{maximum}): ", 1, maximum)
 
 
-def main():
+def get_bet(maximum: int = MAX_BET) -> int:
+    return read_amount(f"Virtual credits per line ({MIN_BET}-{maximum}): ", MIN_BET, maximum)
+
+
+def main() -> None:
+    print("Symbol-grid prototype: virtual credits only; no payout system.")
     balance = deposit()
-    lines = get_number_of_lines()
-    while True:
-        bet = get_bet()
-        total_bet = bet * lines
-
-        if total_bet > balance:
-            print(f"You don't have enough to bet that amount - Your current balance is: ${balance}")
-        else:
-            break
-
-    total_bet = bet * lines
-    print(f"You are betting ${bet} on {lines} lines. Total bet is equal to: ${total_bet}")
+    # Restrict lines and bet size so even the minimum bet is affordable.
+    lines = get_number_of_lines(min(MAX_LINES, balance // MIN_BET))
+    bet = get_bet(min(MAX_BET, balance // lines))
+    print(f"Selected {bet} credits on {lines} line(s): {bet * lines} credits total.")
+    columns = get_slot_machine_spin(ROWS, COLS, SYMBOL_COUNTS)
+    for row in zip(*columns):
+        print(" | ".join(row))
+    print("Preview only: no credits were deducted and no payout was calculated.")
 
 
-main()
+if __name__ == "__main__":
+    try:
+        main()
+    except (EOFError, KeyboardInterrupt):
+        print("\nGoodbye!")

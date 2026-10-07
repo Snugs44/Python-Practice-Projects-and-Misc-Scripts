@@ -1,6 +1,6 @@
 # File rename map
 
-All ten original Python files are retained with their source content unchanged. Only their paths change; existing history remains available in Git.
+All ten original exercises remain represented. The first cleanup commit changes paths only; the subsequent code-improvement commit updates their implementations and adds tests. Original versions remain in Git history.
 
 | Previous path | Current path |
 | --- | --- |
@@ -15,4 +15,4 @@ All ten original Python files are retained with their source content unchanged. 
 | `slot_machine_basic.py` | `prototypes/slot_machine.py` |
 | `string_check_within_string.py` | `exercises/strings/substring_check.py` |
 
-Run commands and saved file bookmarks should use the new paths. These scripts do not import one another or open other repository files, so there are no internal import or file-path references to update.
+Update saved run configurations and bookmarks to the new paths. The original scripts had no imports of one another or repository-relative file reads. The new tests reference the organized paths. See [behavior changes](code_improvements.md) before reusing the updated functions in other code.
